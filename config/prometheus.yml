@@ -1,0 +1,34 @@
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      #- 127.0.0.1:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - 'alerts.yml'
+
+# A scrape configuration containing node exporter endpoints to scrape:
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+    static_configs:
+      - targets: ['node-exporter1:9100']
+        labels:
+          group: 'monitoring_node_ex1'
+      - targets: ['node-exporter2:9100']
+        labels:
+          group: 'monitoring_node_ex2'
+      - targets: ['node-exporter3:9100']
+        labels:
+          group: 'monitoring_node_ex3'

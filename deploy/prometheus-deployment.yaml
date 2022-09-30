@@ -1,0 +1,71 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-volume-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: skills-network-learner
+  resources:
+    requests:
+      storage: 500M
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: ubuntu/prometheus:edge
+        volumeMounts:
+        - name: prometheus-config-volume
+          mountPath: /etc/prometheus/prometheus.yml
+          subPath: prometheus.yml
+        - name: prometheus-config-volume
+          mountPath: /etc/prometheus/alerts.yml
+          subPath: alerts.yml
+        - name: prometheus-data
+          mountPath: /prometheus
+        ports:
+        - containerPort: 9090
+          name: prometheus
+          protocol: TCP
+        resources: {}
+      volumes:
+        - name: prometheus-config-volume
+          configMap:
+            name: prometheus-config
+            items:
+            - key: prometheus
+              path: prometheus.yml
+            - key: prometheus-alerts
+              path: alerts.yml
+        - name: prometheus-data
+          persistentVolumeClaim:
+            claimName: prometheus-volume-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  selector:
+    app: prometheus
+  type: NodePort
+  ports:
+  - name: prometheus
+    protocol: TCP
+    port: 9090
+    targetPort: 9090
+    # nodePort: 30090
